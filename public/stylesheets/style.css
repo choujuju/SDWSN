@@ -1,0 +1,24 @@
+
+div.svg_circle{margin: -20em auto auto auto;}
+svg{width:1300px;height:1300px;position:absolute;margin:auto;left: 0; right: 0;}
+#svgjs0,#svgjs1,#svgjs2,#svgjs3,#svgjs4{position:relative;transform-origin: center center;animation:myrotate_0 60s linear infinite;-webkit-animation:myrotate_0 60s linear infinite;}
+#svgjs0{animation-name:myrotate_0;-webkit-animation-name:myrotate_0;}
+#svgjs1{animation-name:myrotate_1;-webkit-animation-name:myrotate_1;}
+#svgjs2{animation-name:myrotate_2;-webkit-animation-name:myrotate_2;}
+#svgjs3{animation-name:myrotate_3;-webkit-animation-name:myrotate_3;}
+#svgjs4{animation-name:myrotate_4;-webkit-animation-name:myrotate_4;}
+#svgjs0g,#svgjs1g,#svgjs2g,#svgjs3g,#svgjs4g {fill:transparent;}
+.point {fill:#ffffff;stroke: #03c4eb;animation: mydot 2s cubic-bezier(0.47, 0, 0.75, 0.72);animation-fill-mode:forwards;-webkit-animation: mydot 2s cubic-bezier(0.47, 0, 0.75, 0.72);-webkit-animation-fill-mode:forwards;}
+@keyframes myrotate_0 {0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);}}
+@keyframes myrotate_1 {0% {transform:rotate(288deg);} 40%{transform:rotate(144deg);} 80%{transform:rotate(0deg);} 100% {transform:rotate(-72deg);}}
+@keyframes myrotate_2 {0% {transform:rotate(72deg);} 80%{transform:rotate(360deg);} 100% {transform:rotate(432deg);}}
+@keyframes myrotate_3 {0% {transform:rotate(216deg);} 60%{transform:rotate(0deg);} 100% {transform:rotate(-144deg);}}
+@keyframes myrotate_4 {0% {transform:rotate(144deg);} 40%{transform:rotate(360deg);} 100% {transform:rotate(504deg);}}
+@-webkit-keyframes myrotate_0 {0% {-webkit-transform:rotate(0deg);} 100% {-webkit-transform:rotate(360deg);}}
+@-webkit-keyframes myrotate_1 {0% {-webkit-transform:rotate(288deg);} 40%{-webkit-transform:rotate(144deg);} 80%{-webkit-transform:rotate(0deg);} 100% {-webkit-transform:rotate(-72deg);}}
+@-webkit-keyframes myrotate_2 {0% {-webkit-transform:rotate(72deg);} 20%{-webkit-transform:rotate(0deg);} 100% {-webkit-transform:rotate(432deg);}}
+@-webkit-keyframes myrotate_3 {0% {-webkit-transform:rotate(216deg);} 60%{-webkit-transform:rotate(0deg);} 100% {-webkit-transform:rotate(-144deg);}}
+@-webkit-keyframes myrotate_4 {0% {-webkit-transform:rotate(144deg);} 40%{-webkit-transform:rotate(0deg);} 100% {-webkit-transform:rotate(504deg);}}
+@keyframes mydot{0%{opacity:0;}100% {opacity:1;}}
+@-webkit-keyframes mydot{0%{opacity:0;}100% {opacity:1;}}
+
