@@ -1,0 +1,28 @@
+
+@font-face {font-family: "iconfont";
+  src: url('iconfont.eot?t=1462099930'); /* IE9*/
+  src: url('iconfont.eot?t=1462099930#iefix') format('embedded-opentype'), /* IE6-IE8 */
+  url('iconfont.woff?t=1462099930') format('woff'), /* chrome, firefox */
+  url('iconfont.ttf?t=1462099930') format('truetype'), /* chrome, firefox, opera, Safari, Android, iOS 4.2+*/
+  url('iconfont.svg?t=1462099930#iconfont') format('svg'); /* iOS 4.1- */
+}
+
+.iconfont {
+  font-family:"iconfont" !important;
+  font-size:16px;
+  font-style:normal;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-stroke-width: 0.2px;
+  -moz-osx-font-smoothing: grayscale;
+}
+.icon-yydownload2:before { content: "\e60b"; }
+.icon-yydownload1:before { content: "\e60a"; }
+.icon-yysearch1:before { content: "\e61b"; }
+.icon-yyrevise1:before { content: "\e619"; }
+.icon-yyrefresh:before { content: "\e618"; }
+.icon-yyexit:before { content: "\e60d"; }
+.icon-yyhome1:before { content: "\e630"; }
+.icon-yyclassify2:before { content: "\e605"; }
+.icon-yydelete2:before { content: "\e607"; }
+.icon-yyhelp:before { content: "\e60e"; }
+.icon-yyadd:before { content: "\e601"; }

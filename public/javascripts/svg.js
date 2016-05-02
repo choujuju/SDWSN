@@ -2,7 +2,7 @@ var cx = 620;
 var cy = 620;
 var svgns = "http://www.w3.org/2000/svg";
 
-window.onload = function() {
+function draw_svg_circles() {
 	var d = document.getElementsByClassName("svg_circle")[0];
 	var w=getViewportSize().w,
 		h=getViewportSize().h;
@@ -10,7 +10,7 @@ window.onload = function() {
 	d.setAttribute("height",h+"px");
 
 	var circles = document.createElementNS(svgns,"svg:svg");
-	circles.setAttribute("viewBox","0 0 1300 1000");
+	circles.setAttribute("viewBox","0 250 1250 1000");
 	circles.setAttribute("overflow-y","hidden");
 	for(var i=0;i<5;i++) {
 		var rx = 120*(i+1),
@@ -79,11 +79,10 @@ function displaydot() {
 		var ran = Math.random();
 		var index = Math.floor(i*ran);
 		dots[index].style.cssText = "animation-delay: "+(4*ran)+"s";
-		dots[index].style.cssText = "-webkit-animation-delay: "+(6*ran)+"s";
+		dots[index].style.cssText = "-webkit-animation-delay: "+(4*ran)+"s";
 		//dots[index].setAttribute("webkitAnimationDelay",(5*ran)+"s");
 	}
 }
-
 
 function getViewportSize() {
 	w=window;
