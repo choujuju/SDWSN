@@ -1,6 +1,6 @@
 window.onload = function () {
 	draw_svg_circles();
-	$("a").hover(function() {
+	$(".share-discription a").hover(function() {
 		$(this).css("color","#03c4eb").css("border-color","#b6f3ff");
 	},function() {
 		$(this).css("color","#03034b").css("border-color","#f2f2f2");
@@ -22,6 +22,16 @@ window.onload = function () {
 	$(".close,#page-cover").click(function(){
 		$("#page-cover").css("display","none").css("opacity","0");
 		$("#share").css("top","-700px");
+	});
+	$(".guide-position a").click(function(){
+		$(".guide-position a").css("border-left","0px").css("border-color","#f2f2f2");
+		$(this).css("border-left","5px solid #03c4eb").css("border-top","1px solid #03c4eb");
+	});
+	$(".guide-position a").mouseenter(function(){
+		$(this).css("color","#03c4eb");
+	});
+	$(".guide-position a").mouseleave(function(){
+		$(this).css("color","#03034b");
 	});
 	
 };
