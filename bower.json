@@ -1,0 +1,24 @@
+{
+  "name": "SDWSN",
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "homepage": "https://github.com/choujuju/SDWSN",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "static/components"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "angular": "^1.5.5",
+    "angular-route": "^1.5.5",
+    "angular-moment": "^0.10.3"
+  },
+  "authors": [
+    "choujuju <choujuju@qq.com>"
+  ]
+}
