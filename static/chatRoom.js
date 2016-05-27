@@ -7,7 +7,7 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 		method:'GET'
 	}).success(function(user){
 		$rootScope.me = user;
-		$location.path('/rooms');
+		$location.path('/front');
 	}).error(function(data){
 		$location.path('/login');
 	});
@@ -23,4 +23,15 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 	$rootScope.$on('login',function(evt,me){
 		$rootScope.me = me;
 	});
+	$rootScope.home = function(){
+		$http({
+			url: '/api/validate',
+			method:'GET'
+		}).success(function(user){
+			$rootScope.me = user;
+			$location.path('/front');
+		}).error(function(data){
+			$location.path('/login');
+		});
+	};
 });

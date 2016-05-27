@@ -1,6 +1,7 @@
 var db = require('../models')
 var async = require('async');
 var gravatar = require('gravatar');
+var crypto = require('crypto');
 
 exports.findUserById = function(_userId,callback){
   db.User.findOne({
@@ -8,6 +9,8 @@ exports.findUserById = function(_userId,callback){
   },callback);
 };
 
+//------------默认密码111111---------------
+//------------默认用户名邮箱----------------
 exports.findByEmailOrCreate = function(email,callback){
   db.User.findOne({
     email:email
@@ -17,11 +20,33 @@ exports.findByEmailOrCreate = function(email,callback){
     }else{
       user = new db.User;
       user.name = email.split('@')[0];
+      user.password = '111111'
       user.email = email;
       user.avatarUrl = gravatar.url(email);
       user.save(callback);
     }
   });
+};
+
+exports.changeName = function(newName,callback){
+  db.User.findOneAndUpdate({
+    email:newName.email
+  },{
+    $set: {
+      name:newName.name
+    }
+  },callback);
+};
+
+exports.changePassword = function(newPassword,callback){
+  db.User.findOneAndUpdate({
+    email:newPassword.email,
+    password:newPassword.oldPassword
+  },{
+    $set: {
+      password:newPassword.newPassword
+    }
+  },callback);
 };
 
 exports.online = function(_userId,callback) {

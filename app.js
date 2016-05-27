@@ -1,13 +1,19 @@
 var express = require('express');
-var http = require('http'); 
 var path = require('path');
+var favicon = require('serve-favicon');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var signedCookieParser = cookieParser('SDWSN');
+var logger = require('morgan');
 var session = require('express-session');
+var bson = require('bson');
 var Controllers = require('./controllers');
 var async = require('async');
 var echarts = require('echarts');
+//引入核心模块crypto生成散列值来加密密码
+var crypto = require('crypto');
+var flash = require('connect-flash');
+var markdown = require('markdown').markdown;
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var ObjectId = Schema.ObjectId;
@@ -15,12 +21,29 @@ var MongoStore = require('connect-mongo')(session);
 var sessionStore = new MongoStore({
   url:'mongodb://localhost/SDWSN'
 });
-
+var multer = require('multer');
+var routes = require('./routes/index');
 var app = express();
+
+var passport = require('passport'),
+    GithubStrategy = require('passport-github').Strategy;
+//创建输入输出流
+var fs = require('fs');
+var accessLog = fs.createWriteStream('access.log',{flags:'a'});
+var errorLog = fs.createWriteStream('error.log',{flags:'a'});
+
+app.use(flash());
+
+//加载日志中间件。
+app.use(logger('dev'));
+//将日志保存为日志文件
+app.use(logger({stream:accessLog}));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.use(passport.initialize());//初始化Passport
 
 app.use(session({
     secret:'SDWSN',
@@ -32,74 +55,48 @@ app.use(session({
     store: sessionStore
   }));
 
-app.get('/api/validate',function(req,res){
-  var _userId = req.session._userId;
-  if (_userId){
-    Controllers.User.findUserById(_userId,function(err,user){
-      if (err) {
-        res.json(401, {
-          msg: err
-        });
-      }else{
-        res.json(user);
-      };
-    });
-  }else{
-    res.json(401,null);
-  }
-});
-
-app.post('/api/login',function(req,res){
-  var email = req.body.email;
-  if (email) {
-    Controllers.User.findByEmailOrCreate(email,function(err,user){
-      if(err) {
-        res.json(500,{
-          msg:err
-        });
-      }else{
-        req.session._userId = user._id;
-        Controllers.User.online(user._id,function(err,user){
-          if(err){
-            res.json(500, {
-              msg: err
-            });
-          } else {
-            res.json(user);
-          };
-        });
-      };
-    });
-  }else{
-    res.json(403);
-  };
-});
-
-app.get('/api/logout',function(req,res){
-  var _userId = req.session._userId;
-  Controllers.User.offline(_userId,function(err,user){
-    if(err){
-      res.json(500, {
-        msg: err
-      });
-    } else {
-      res.json(200);
-      delete req.session._userId;
-    };
-  });
-});
+routes(app);
 
 app.use(express.static(path.join(__dirname, '/static')));
 app.use(function(err,req,res){
   req.sendFile(path.join(__dirname,'/static/index.html'));
 });
 
-var port = process.env.PORT || '3000';
+//上传文件
+multer({
+  //dest:上传文件所在的路径
+  dest: './public/images',
+  //修改文件名（此处为保持文件名）
+  rename: function(fieldname,filename) {
+    return filename;
+  }
+});
+
+//第三方账号登陆
+passport.use(new GithubStrategy({
+  clientID:"3035f36ec15df46c6596",
+  clientSecret:"ea356ea0b38a2370ca1eedd7b1876d035bb8f658",
+  callbackURL:"http://10.8.190.181:3000/login/github/callback"
+},function(accessToken,refreshToken,profile,done){
+  done(null,profile);
+}));
+
+app.set('port', process.env.PORT || '3000');
+app.listen(app.get('port'));
+
+//导出app实例供其它模块调用
+module.exports = app;
+
+//-----------------------------------------
+//
+//                 socket
+//        
+//-----------------------------------------
+
+var port = process.env.PORT || '3003';
 app.set('port', port);
 
-var server = app.listen(app.get('port'),function(){
-  console.log('SDWSN is on port '+port+'!');
-});
+var server = app.listen(app.get('port'));
 
 var io = require('socket.io').listen(server);
 var messages = [];

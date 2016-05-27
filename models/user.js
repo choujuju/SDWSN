@@ -5,6 +5,7 @@ var ObjectId = Schema.ObjectId;
 var User = new Schema({
 	email:String,
 	name:String,
+	password: String,
 	avatarUrl:String,
 	_roomId: ObjectId,
 	online: Boolean
