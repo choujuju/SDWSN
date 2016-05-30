@@ -110,9 +110,7 @@ module.exports = function(app) {
         title: '主页',
         user: name,
         posts: posts,
-        page: page,
-        isFirstPage: (page-1) == 0,
-        isLastPage: ((page-1)*10+posts.length) == total
+        page: page
       });
     });
   });
@@ -125,91 +123,77 @@ module.exports = function(app) {
     failureRedirect:'/login',
     successFalsh:'登陆成功！'
   }),function(req,res){
-    var newUser = new User({
+    var newUser = new db.User({
       name: req.user.username,
-      password: "",
+      password: "111111",
       email: ""
     });
     User.get(newUser.name, function (err, user) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/')
+        return res.json(500)
       }
       if (user) {
-        req.flash('error','对不起，用户名已经存在！ (●*◡*●)');
-        return res.redirect('/login');//返回注册页
+        return res.json(user);//返回注册页
       }
       //如果不存在则新增用户
       req.session.user = {name: req.user.username, head: "https://gravatar.com/avatar/"+req.user._json.gravatar_id+"?s=48"};
       newUser.save(function(err,user) {
         if(err) {
-          req.flash('error',err);
-          return res.redirect('/login');
+          return res.json(401);
         }
         req.session.user = user;//用户信息存入session
-        req.flash('success', '登陆成功！');
-        return res.redirect('/');//注册成功后返回主页
+        return res.json(user);//注册成功后返回主页
       });
     });
   });
-
+  //似乎不需要这段了
   app.get('/api/blog/post', checkLogin);
   app.get('/api/blog/post', function(req, res) {
-    res.render('post', {
+    res.json({
       title: '发表',
-      user: req.session.user,
-      success: req.flash('success').toString(),
-      error: req.flash('error').toString()
+      user: req.session.user
    });
   });
+
   app.post('/api/blog/post', checkLogin);
   app.post('/api/blog/post', function(req, res) {
-    var currentUser = req.session.user,
-        tags = [req.body.tag1,req.body.tag2,req.body.tag3],
-        post = new Post({
-          name: currentUser.name,
-          head: currentUser.head,
+    var post = {
+          name: req.body.name,
+          avatarUrl: req.body.avatarUrl,
           title: req.body.title,
-          tags: tags,
+          tags: req.body.tags,
           post: req.body.post
-        });
-    post.save(function (err) {
+    };
+    Controllers.Post.create(post,function(err,post){
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/');
+        return res.json(500);
       }
-      req.flash('success','发布成功！');
-      res.redirect('/');
+      res.json(200);
+    });
+  });
+  //必要性？
+  app.get('/api/blog/upload', checkLogin);
+  app.get('/api/blog/upload', function(req, res) {
+    res.json({
+      title: '文件上传',
+      user: req.session.user
     });
   });
 
-  app.get('/api/blog/upload', checkLogin);
-  app.get('/api/blog/upload', function(req, res) {
-    res.render('upload',{
-      title: '文件上传',
-      user: req.session.user,
-      success: req.flash('success').toString(),
-      error: req.flash('error').toString()
-    });
-  });
   app.post('/api/blog/upload', checkLogin);
   app.post('/api/blog/upload', function(req, res) {
-    req.flash('success','文件上传成功！');
-    res.redirect('/upload');
+    res.json(200);
   });
+
   app.get('/api/blog/archive', checkLogin);
   app.get('/api/blog/archive', function(req, res) {
     Post.getArchive(function(err,posts) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/');
+        return res.json(500);
       }
-      res.render('archive',{
+      res.json({
         title: '存档',
-        posts: posts,
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+        posts: posts
       });
     });
   });
@@ -229,25 +213,22 @@ module.exports = function(app) {
       //查询并返回该用户的所有文章
       Post.getTen(req.params.name,page, function (err, posts, total) {
         if(err) {
-          req.flash('error',err);
-          return res.redirect('/');
+          return res.json(500);
         }
-        res.render('user',{
+        res.json({
           title: req.params.name,
           posts: posts,
-          user: req.session.user,
           page: page,
           isFirstPage: (page-1) == 0,
-          isLastPage: ((page-1)*10+posts.length) == total,
-          success: req.flash('success').toString(),
-          error: req.flash('error').toString()
+          isLastPage: ((page-1)*10+posts.length) == total
         });
       });
     });
   });
+  //不要了吧
   app.get('/api/blog/links', function(req, res) {
     Post.search(req.query.keyword, function (err, posts) {
-      res.render('links',{
+      res.json({
         title: "友情链接",
         user: req.session.user,
         success: req.flash('success').toString(),
@@ -255,14 +236,15 @@ module.exports = function(app) {
       });
     });
   });
+
+  //整合到一起
   app.get('/api/blog/search', checkLogin);
   app.get('/search', function(req, res) {
-    Post.search(req.query.keyword, function (err, posts) {
+    Controllers.Post.getAll(req.query.keyword, function (err, posts) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/');
+        return res.json(500);
       }
-      res.render('search',{
+      res.json({
         title: "SEARCH"+req.query.keyword,
         posts: posts,
         user: req.session.user,
@@ -273,17 +255,12 @@ module.exports = function(app) {
   });
 
   app.get('/api/blog/u/:name/:day/:title', function(req, res) {
-    Post.getOne(req.params.name, req.params.day,req.params.title, function (err, post) {
+    Controllers.Post.getOne(req.params.name, req.params.day,req.params.title, function (err, post) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/');
+        return res.json(500);
       }
-      res.render('article',{
-        title: req.params.title,
-        post: post,
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+      res.json({
+        post: post
       });
     });
   });
@@ -291,17 +268,13 @@ module.exports = function(app) {
   app.get('/api/blog/edit/:name/:day/:title', checkLogin);
   app.get('/api/blog/edit/:name/:day/:title', function(req, res) {
     var currentUser = req.session.user;
-    Post.edit(currentUser.name, req.params.day,req.params.title, function (err, post) {
+    Controllers.Post.edit(currentUser.name, req.params.day,req.params.title, function (err, post) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('back');
+        return res.json(500);
       }
-      res.render('edit',{
+      res.json({
         title: '编辑',
-        post: post,
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+        post: post
       });
     });
   });
@@ -362,14 +335,12 @@ module.exports = function(app) {
     Post.getTags(function(err,posts) {
       if (err) {
         req.flash('error',err);
-        return res.redirect('back');
+        return res.json(500);
       }
-      res.render('tags',{
+      res.json({
         title: '标签',
         posts: posts,
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+        user: req.session.user
       });
     });
   });
@@ -377,15 +348,12 @@ module.exports = function(app) {
   app.get('/api/blog/tags/:tag', function(req, res) {
     Post.getTag(req.params.tag,function(err,posts) {
       if (err) {
-        req.flash('error',err);
-        return res.redirect('/');
+        return req.json(500);
       }
-      res.render('tag',{
+      res.json({
         title: '标签：' + req.params.tag,
         posts: posts,
-        user: req.session.user,
-        success: req.flash('success').toString(),
-        error: req.flash('error').toString()
+        user: req.session.user
       });
     });
   });

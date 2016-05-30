@@ -115,7 +115,20 @@
 						<li><a href="#">导出记录</a></li>
 					</ul>
 					<ul class="nav nav-stacked">
-						<li><a href="/api/blog" ng-click="blog()">博客</a></li>
+						<li class="dropdown">
+							<a href="/api/blog" class="dropdown-toggle" data-toggle="dropdown" ng-click="blog()">博客
+							</a>
+							<ul class="dropdown-menu">
+					      <li><a title="存档" href="/api/blog/archive" ng-click="blogarchive()">存档</a></li>
+					      <li><a title="标签" href="/api/blog/tags" ng-click="blogtags()">标签</a></li>
+					      <li><a title="友情链接" href="/api/blog/links" ng-click="bloglinks()">友情链接</a></li>
+					      <li><a title="发表" href="/api/blog/post" ng-click="blogpost()">发表</a></li>
+					      <li><a title="上传" href="/api/blog/upload" ng-click="blogupload()">上传</a></li>
+					      <li><form action="/api/blog/search" method="get">
+					        <input type="text" class="form-control search-room-input" placeholder="搜索文章" ng-change="searchArtical()" ng-model="searchKey"></input>
+					      </form></li>
+							</ul>
+						</li>
 						<li><a href="#" data-toggle="modal" data-target="#rooms">聊天室</a></li>
 						<li><a href="#">新鲜事</a></li>
 						<li><a href="#">用户与朋友</a></li>

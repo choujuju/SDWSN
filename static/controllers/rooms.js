@@ -3,7 +3,7 @@ angular.module('SDWSNApp').controller('RoomsCtrl',function($rootScope,$scope,$lo
 	socket.on('roomsData',function(rooms){
 		$scope.rooms=$scope._rooms = rooms;
 	});
-	
+
 	$scope.enterRoom = function(room){
 		$('#rooms').modal('hide');
 		socket.emit('joinRoom',{
@@ -11,10 +11,12 @@ angular.module('SDWSNApp').controller('RoomsCtrl',function($rootScope,$scope,$lo
 			room: room
 		});
 	};
+	
 	socket.on('joinRoom.'+$scope.me._id,function(join){
 		$rootScope._roomId=join.room._id;
 		$('#room').modal('show');
 	});
+
 	socket.on('joinRoom',function(join){
 		$scope.rooms.forEach(function(room){
 			if(room._id == join.room._id){

@@ -8,7 +8,18 @@ angular.module('SDWSNApp').controller('LoginCtrl',function($scope,$http,$locatio
 			}
 		}).success(function(user){
 			$scope.$emit('login',user);
-			$location.path('/rooms');
+			$location.path('/front');
+		}).error(function(data) {
+			$location.path('/login');
+		});
+	};
+	$scope.githublogin = function() {
+		$http({
+			url: '/api/login/github',
+			method: 'GET'
+		}).success(function(user){
+			$scope.$emit('login',user);
+			$location.path('/front');
 		}).error(function(data) {
 			$location.path('/login');
 		});
