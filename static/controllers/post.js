@@ -11,7 +11,8 @@ angular.module('SDWSNApp').controller('PostCtrl',function($rootScope,$scope,$htt
         tags:[$scope.tag1,$scope.tag2,$scope.tag3],
         post:$scope.post
       }
-    }).success(function(){
+    }).success(function(post){
+      $rootScope.blogdata.posts.push(post);
       $location.path('/blog');
     });
   };

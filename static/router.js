@@ -2,7 +2,7 @@ angular.module('SDWSNApp').config(function($routeProvider,$locationProvider){
 	$locationProvider.html5Mode(true);
 	$routeProvider.when('/front',{
 		templateUrl: '/pages/front.html',
-		controller: 'FrontCtrl'
+		//controller: 'FrontCtrl'
 	}).when('/login',{
 		templateUrl: '/pages/login.html',
 		controller: 'LoginCtrl'
@@ -36,8 +36,8 @@ angular.module('SDWSNApp').config(function($routeProvider,$locationProvider){
 	}).when('/blog/tags',{
 		templateUrl: '/pages/blog/tags.html',
 		controller: 'TagsCtrl'
-	}).when('/blog/tags/:tag',{
-		templateUrl: '/pages/blog/tags.html',
+	}).when('/blog/tags/:name/:tag',{
+		templateUrl: '/pages/blog/tag.html',
 		controller: 'TagCtrl'
 	}).otherwise({
 		templateUrl: '/pages/404.html'

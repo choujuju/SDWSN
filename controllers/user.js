@@ -8,6 +8,11 @@ exports.findUserById = function(_userId,callback){
     _id:_userId
   },callback);
 };
+exports.findUserByName = function(name,callback){
+  db.User.findOne({
+    name:name
+  },callback);
+};
 
 //------------默认密码111111---------------
 //------------默认用户名邮箱----------------

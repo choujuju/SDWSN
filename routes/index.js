@@ -25,14 +25,17 @@
 
 //修改之后的代码如下：
 //引入核心模块crypto生成散列值来加密密码
-var crypto = require('crypto'),
-//引入User进行数据库操作
-    Controllers = require('../controllers');
-    passport = require('passport');
 
+var crypto = require('crypto');
+//引入User进行数据库操作
+var Controllers = require('../controllers');
+var passport = require('passport');
+var async = require('async');
 module.exports = function(app) {
+
   app.get('/api/validate',function(req,res){
     var _userId = req.session._userId;
+
     if (_userId){
       Controllers.User.findUserById(_userId,function(err,user){
         if (err) {
@@ -95,24 +98,36 @@ module.exports = function(app) {
 //-----------------------------------------------------------
   app.get('/api/blog', function(req, res) {
     var page=req.query.p ? parseInt(req.query.p) : 1;
-    if(req.session.user) {
-      name=req.session.user.name;
-    }
-    else {
-      name=null;
-    }
-    //改成getAll
-    Controllers.Post.getTen(name,page,function(err,posts,total) {
-      if (err) {
-        posts = [];
-      }
-      res.json({
-        title: '主页',
-        user: name,
-        posts: posts,
-        page: page
+    _userId=req.session._userId;
+    if(_userId) {
+      async.series([function(done){
+        Controllers.User.findUserById(_userId,function(err,user){
+          if (err){
+            done(err);
+          }else{
+            if (!user){
+              done("No such user!");
+            }else{
+              done(null,user.name);
+            }
+          }
+        });
+      }],function(err,results){
+        Controllers.Post.getTen(results[0],page,function(err,posts,total) {
+          if (err) {
+            posts = [];
+          }
+          res.json({
+            title: '主页',
+            user: results[0],
+            posts: posts,
+            page: page
+          });
+        });
       });
-    });
+    }else {
+      res.json(401);
+    }
   });
   //<><><><><><><><><><><><><><><><><><><><>
   app.get('/api/login/github',passport.authenticate("github",{
@@ -120,7 +135,7 @@ module.exports = function(app) {
   }));
   app.get('/api/login/github/callback',passport.authenticate("github",{
     session:false,
-    failureRedirect:'/login',
+    failureRedirect:'/api/login',
     successFalsh:'登陆成功！'
   }),function(req,res){
     var newUser = new db.User({
@@ -147,7 +162,7 @@ module.exports = function(app) {
     });
   });
   //似乎不需要这段了
-  app.get('/api/blog/post', checkLogin);
+  //app.get('/api/blog/post', checkLogin);
   app.get('/api/blog/post', function(req, res) {
     res.json({
       title: '发表',
@@ -155,7 +170,7 @@ module.exports = function(app) {
    });
   });
 
-  app.post('/api/blog/post', checkLogin);
+  //app.post('/api/blog/post', checkLogin);
   app.post('/api/blog/post', function(req, res) {
     var post = {
           name: req.body.name,
@@ -172,7 +187,7 @@ module.exports = function(app) {
     });
   });
   //必要性？
-  app.get('/api/blog/upload', checkLogin);
+  //app.get('/api/blog/upload', checkLogin);
   app.get('/api/blog/upload', function(req, res) {
     res.json({
       title: '文件上传',
@@ -180,12 +195,12 @@ module.exports = function(app) {
     });
   });
 
-  app.post('/api/blog/upload', checkLogin);
+  //app.post('/api/blog/upload', checkLogin);
   app.post('/api/blog/upload', function(req, res) {
     res.json(200);
   });
 
-  app.get('/api/blog/archive', checkLogin);
+  //app.get('/api/blog/archive', checkLogin);
   app.get('/api/blog/archive', function(req, res) {
     Post.getArchive(function(err,posts) {
       if (err) {
@@ -197,12 +212,12 @@ module.exports = function(app) {
       });
     });
   });
-  app.get('/api/blog/u/:name', checkLogin);
+  //app.get('/api/blog/u/:name', checkLogin);
   app.get('/api/blog/u/:name', function(req, res) {
     var page=req.query.p ? parseInt(req.query.p) : 1;
     //检查用户是否存在
 
-    User.get(req.params.name, function (err,user) {
+    Controllers.User.findUserByName(req.params.name, function (err,user) {
 
       //使用passport后，删掉用户认证的部分，
       //这样第三方用户就可以查看自己的博客主页了
@@ -211,17 +226,18 @@ module.exports = function(app) {
       //  return res.redirect('/');
       //}
       //查询并返回该用户的所有文章
-      Post.getTen(req.params.name,page, function (err, posts, total) {
+      Controllers.Post.getTen(req.params.name,page, function (err, posts, total) {
         if(err) {
-          return res.json(500);
+          res.json(500);
+        }else{
+          res.json({
+            title: req.params.name,
+            posts: posts,
+            page: page,
+            isFirstPage: (page-1) == 0,
+            isLastPage: ((page-1)*10+posts.length) == total
+          });
         }
-        res.json({
-          title: req.params.name,
-          posts: posts,
-          page: page,
-          isFirstPage: (page-1) == 0,
-          isLastPage: ((page-1)*10+posts.length) == total
-        });
       });
     });
   });
@@ -238,8 +254,8 @@ module.exports = function(app) {
   });
 
   //整合到一起
-  app.get('/api/blog/search', checkLogin);
-  app.get('/search', function(req, res) {
+  //app.get('/api/blog/search', checkLogin);
+  app.get('/api/blog/search', function(req, res) {
     Controllers.Post.getAll(req.query.keyword, function (err, posts) {
       if (err) {
         return res.json(500);
@@ -260,120 +276,166 @@ module.exports = function(app) {
         return res.json(500);
       }
       res.json({
+        title:'文章',
         post: post
       });
     });
   });
 
-  app.get('/api/blog/edit/:name/:day/:title', checkLogin);
+  //app.get('/api/blog/edit/:name/:day/:title', checkLogin);
   app.get('/api/blog/edit/:name/:day/:title', function(req, res) {
-    var currentUser = req.session.user;
-    Controllers.Post.edit(currentUser.name, req.params.day,req.params.title, function (err, post) {
-      if (err) {
-        return res.json(500);
-      }
-      res.json({
-        title: '编辑',
-        post: post
+    async.series([function(done){
+      Controllers.User.findUserById(req.session._userId,function(err,user){
+        if(err){
+          done(err);
+        }else{
+          done(null,user);
+        }
       });
+    }],function(err,results){
+      if(err){
+        res.json(500);
+      }else{
+        var currentUser = results[0];
+        Controllers.Post.edit(req.params.name, req.params.day,req.params.title, function (err, post) {
+          if (err) {
+            res.json(500);
+          }else{
+            res.json({
+              title: '编辑',
+              post: post
+            });
+          }
+        });
+      }
     });
   });
-  app.post('/api/blog/edit/:name/:day/:title', checkLogin);
+  //app.post('/api/blog/edit/:name/:day/:title', checkLogin);
   app.post('/api/blog/edit/:name/:day/:title', function(req, res) {
-    var currentUser = req.session.user,
-        p = {
-          name: currentUser.name,
+    var p = {
+          name: req.params.name,
           day: req.params.day,
           title: req.params.title,
           post: req.body.post
         };
-    Post.update(p,function (err) {
-      var url = encodeURI('/u/'+req.params.name+'/'+req.params.day+'/'+req.params.title);
+    Controllers.Post.update (p,function (err) {
+      var url ='/blog/u/'+req.params.name+'/'+req.params.day+'/'+req.params.title;
       if (err) {
-        req.flash('error',err);
-        return res.redirect(url);
+        return res.json(500);
       }
-      req.flash('success','修改成功！');
-      res.redirect(url);
+      res.json({url:url});
     });
   });
-  app.get('/api/blog/remove/:name/:day/:title', checkLogin);
+  //app.get('/api/blog/remove/:name/:day/:title', checkLogin);
   app.get('/api/blog/remove/:name/:day/:title', function(req, res) {
-    var currentUser = req.session.user;
-    Post.remove(currentUser, req.params.day,req.params.title, function (err) {
-      if (err) {
-        req.flash('error',err);
-        return res.redirect('back');
-      }
-      req.flash('success','删除成功！');
-      res.redirect('/');
-    });
-  });
-  app.get('/api/blog/reprint/:name/:day/:title', checkLogin);
-  app.get('/api/blog/reprint/:name/:day/:title', function(req, res) {
-    Post.edit(req.params.name, req.params.day, req.params.title, function (err, post) {
-      if (err) {
-        req.flash('error',err);
-        return res.redirect('back');
-      }
-      var currentUser = req.session.user,
-          reprint_from = {name: post.name,day:post.time.day,title:post.title},
-          reprint_to = {name: currentUser.name,head:currentUser.head};
-      Post.reprint(reprint_from,reprint_to,function(err,post) {
-        if (err) {
-          req.flash('error',err);
-          return res.redirect('back');
+    async.series([function(done){
+      Controllers.User.findUserById(req.session._userId,function(err,user){
+        if(err){
+          done(err);
+        }else{
+          done(null,user);
         }
-        req.flash('success',"转载成功！");
-        var url = encodeURI('/u/'+post.name+'/'+post.time.day+'/'+post.title);
-        res.redirect(url);
       });
+    }],function(err,results){
+      if(err){
+        res.json(500);
+      }else{
+        var currentUser = results[0];
+        Controllers.Post.remove(currentUser.name, req.params.day,req.params.title, function (err) {
+          if (err) {
+            res.json(500);
+          }else{
+            res.json(200);
+          }
+        });
+      }
     });
   });
-  app.get('/api/blog/tags', checkLogin);
-  app.get('/api/blog/tags', function(req, res) {
-    Post.getTags(function(err,posts) {
+  //app.get('/api/blog/reprint/:name/:day/:title', checkLogin);
+  app.get('/api/blog/reprint/:name/:day/:title', function(req, res) {
+    async.series([function(done){
+      Controllers.Post.edit(req.params.name, req.params.day, req.params.title, function (err, post) {
+        if (err) {
+          done(err);
+        }else{
+          done(null,post);
+        }
+      });
+    },function(done){
+      Controllers.User.findUserById(req.session._userId,function(err,user){
+        if(err){
+          done(err);
+        }else{
+          done(null,user);
+        }
+      });
+    }],function(err,results){
+      if(err){
+        res.json(500);
+      }else{
+        var post = results[0];
+        var currentUser = results[1],
+            reprint_from = {
+              name: post.name,
+              day:post.time.day,
+              title:post.title
+            },
+            reprint_to = {
+              name: currentUser.name,
+              avatarUrl:currentUser.avatarUrl
+            };
+        Controllers.Post.reprint(reprint_from,reprint_to,function(err,post) {
+          if (err) {
+            res.json(500);
+          }else{
+            var url = '/blog/u/'+post.name+'/'+post.time.day+'/'+post.title;
+            res.json({
+              url:url,
+              post:post
+            });
+          }
+        });
+      }
+    });
+  });
+  //app.get('/api/blog/tags', checkLogin);
+  app.get('/api/blog/tags/:name', function(req, res) {
+    Controllers.Post.getTags(req.params.name,function(err,tags) {
       if (err) {
         req.flash('error',err);
         return res.json(500);
       }
       res.json({
         title: '标签',
-        posts: posts,
+        tags: tags,
         user: req.session.user
       });
     });
   });
-  app.get('/api/blog/tags/:tag', checkLogin);
-  app.get('/api/blog/tags/:tag', function(req, res) {
-    Post.getTag(req.params.tag,function(err,posts) {
+  //app.get('/api/blog/tags/:tag', checkLogin);
+  app.get('/api/blog/tags/:name/:tag', function(req, res) {
+    Controllers.Post.getTag(req.params.tag,req.params.name,function(err,posts) {
       if (err) {
         return req.json(500);
       }
       res.json({
         title: '标签：' + req.params.tag,
         posts: posts,
-        user: req.session.user
+        user: req.params.name
       });
     });
   });
 
-  app.use(function(req,res) {
-    res.render("404");
-  });
-
   function checkLogin(req,res,next) {
     if (!req.session.user) {
-      req.flash('error','未登录！');
-      res.redirect('/login');
+      req.json('error','未登录！');
     }
     next();
   };
 
   function checkNotLogin(req,res,next) {
     if (req.session.user) {
-      req.flash('error','已登录！');
-      res.redirect('back');
+      req.json('error','已登录！');
     }
     next();
   };

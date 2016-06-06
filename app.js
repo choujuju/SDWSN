@@ -50,7 +50,7 @@ app.use(session({
     resave:true,
     saveUninitialized:false,
     cookie:{
-      maxAge:60 * 1000* 60
+      maxAge:60 * 1000* 60 * 24
     },
     store: sessionStore
   }));
@@ -81,22 +81,19 @@ passport.use(new GithubStrategy({
   done(null,profile);
 }));
 
-app.set('port', process.env.PORT || '3000');
-app.listen(app.get('port'));
-
-//导出app实例供其它模块调用
-module.exports = app;
-
 //-----------------------------------------
 //
 //                 socket
-//        
+//
 //-----------------------------------------
 
-var port = process.env.PORT || '3003';
+var port = process.env.PORT || '3000';
 app.set('port', port);
 
 var server = app.listen(app.get('port'));
+
+//导出app实例供其它模块调用
+module.exports = app;
 
 var io = require('socket.io').listen(server);
 var messages = [];
@@ -105,19 +102,14 @@ io.sockets.on('connection',function(socket){
   console.log('socket is connected');
   socket.on('createMessage',function(message){
     Controllers.Message.create(message,function(err){
+      console.log(message);
       if (err){
         socket.emit('err',{
           msg:err
         });
       }else{
-        msg={
-          content:message.message,
-          creator:message.creator,
-          _roomId:message._roomId,
-          createAt:new Date
-        }
         socket.in(message._roomId).broadcast.emit('messageAdded',message);
-        socket.emit('messageAdded',msg);
+        socket.emit('messageAdded',message);
       }
     });
   });
@@ -136,7 +128,7 @@ io.sockets.on('connection',function(socket){
       });
     };
   });
-  
+
   socket.on('createRoom',function(room){
     Controllers.Room.create(room,function(err,room){
       if(err){
@@ -154,7 +146,7 @@ io.sockets.on('connection',function(socket){
   };
   socket.on('getAllRooms',function(data){
     //===========================================
-    
+
     var nodes=[{
       name:'0',
       ipAddress:'10.0.1.1',
@@ -244,7 +236,7 @@ io.sockets.on('connection',function(socket){
       source: '4',
       target: '5'
     }];
-    
+
     var sensorDatas = [];
     for (var i = 9; i >= 1; i--) {
       var a = Math.round(Math.pow(Math.random(),2)*40+15);
@@ -258,20 +250,37 @@ io.sockets.on('connection',function(socket){
       sensorDatas.push({
         value: b,
         category:'temperature',
-        ipAddress :'10.0.1.'+i
+        ipAddress :'10.0.1.' + i
       });
       sensorDatas.push({
         value: c,
         category:'smoke',
-        ipAddress :'10.0.1.'+i
+        ipAddress :'10.0.1.' + i
       });
     }
-    
+
     //===========================================
-    
+
     (function(graph){
           async.series([
+            /*
             function(done){
+            for (var i = nodes.length - 1; i >= 0; i--) {
+              Controllers.Node.create(nodes[i],function(data){
+                //console.log('>',data);
+              });
+            }
+            done(null,null);
+          },function(done){
+            for (var i = links.length - 1; i >= 0; i--) {
+              Controllers.Link.create(links[i],function(data){
+                //console.log('>',data);
+              });
+            }
+            done(null,null);
+          },
+          */
+          function(done){
               for (var i = sensorDatas.length - 1; i >= 0; i--) {
                 Controllers.SensorData.create(sensorDatas[i],function(data){
                   //console.log('>',data);
@@ -420,4 +429,3 @@ io.set('authorization',function(handshakeData,accept){
     };
   });
 });
-

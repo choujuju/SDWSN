@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="SDWSNApp">
 	<head>
-		<base href="/login">
+		<base href="/">
 		<title>SDWSN</title>
 		<link rel="stylesheet" type="text/css" href="/components/bootstrap/dist/css/bootstrap.css">
 		<link rel="stylesheet" type="text/css" href="/styles/room.css">
@@ -124,7 +124,7 @@
 					      <li><a title="友情链接" href="/api/blog/links" ng-click="bloglinks()">友情链接</a></li>
 					      <li><a title="发表" href="/api/blog/post" ng-click="blogpost()">发表</a></li>
 					      <li><a title="上传" href="/api/blog/upload" ng-click="blogupload()">上传</a></li>
-					      <li><form action="/api/blog/search" method="get">
+					      <li ng-show="_searchposts.getAllForSearch"><form action="/api/blog/search" method="get">
 					        <input type="text" class="form-control search-room-input" placeholder="搜索文章" ng-change="searchArtical()" ng-model="searchKey"></input>
 					      </form></li>
 							</ul>
@@ -161,5 +161,15 @@
 		<script type="text/javascript" src="/controllers/rooms.js"></script>
 		<script type="text/javascript" src="/controllers/message-creator.js"></script>
 		<script type="text/javascript" src="/controllers/blog.js"></script>
+		<script type="text/javascript" src="/controllers/archive.js"></script>
+		<script type="text/javascript" src="/controllers/article.js"></script>
+		<script type="text/javascript" src="/controllers/user.js"></script>
+		<script type="text/javascript" src="/controllers/edit.js"></script>
+		<script type="text/javascript" src="/controllers/links.js"></script>
+		<script type="text/javascript" src="/controllers/post.js"></script>
+		<script type="text/javascript" src="/controllers/search.js"></script>
+		<script type="text/javascript" src="/controllers/tag.js"></script>
+		<script type="text/javascript" src="/controllers/tags.js"></script>
+		<script type="text/javascript" src="/controllers/upload.js"></script>
 	</body>
 </html>

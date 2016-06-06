@@ -1,6 +1,5 @@
 angular.module('SDWSNApp',['ngRoute','angularMoment']);
-
-angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
+angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location,$routeParams){
 	$window.moment.lang('zh-cn');
 	$http({
 		url: '/api/validate',
@@ -40,9 +39,33 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 	    method:'GET'
 	  }).success(function(blog){
 	    $rootScope.blog = blog;
-			$location.path('/blog')
+			$location.path('/blog');
+			/*
+			$http({
+		    url:'/api/blog/search',
+		    method:'GET'
+		  }).success(function(searchdata){
+		    $rootScope._searchposts = searchdata;
+				$rootScope._searchposts.getAllForSearch = true;
+		  }).error(function(data){
+				$rootScope._searchposts = {};
+				$rootScope._searchposts.getAllForSearch = false;
+		  });
+			*/
 	  });
 	};
+	$rootScope.searchArtical = function(){
+		if($location.path() != "/blog/search"){
+			$location.path('/blog/search');
+		}
+		if($rootScope.searchKey){
+			$rootScope.posts = $rootScope._searchposts.posts.filter(function(post){
+				return post.indexOf($rootScope.searchKey) > -1;
+			});
+		}else{
+			$rootScope.posts = $rootScope._searchposts.posts;
+		}
+  };
 	$rootScope.blogarchive = function(){
 		$http({
 	    url:'/api/blog/archive',
@@ -51,51 +74,42 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 	    $rootScope.posts = posts.posts;
 	    $location.path = '/blog/archive';
 	  }).error(function(data){
-	    $location.path = '/blog';
+	    $location.path('/blog');
 	  });
 	};
-	$rootScope.blogarticle = function(){
+	$rootScope.blogarticle = function(name,day,title){
 		$http({
-	    url:'/api/blog/u/:name/:day/:title',
+	    url:'/api/blog/u/'+name+'/'+day+'/'+title,
 	    method:'GET'
 	  }).success(function(post){
 			$rootScope.post = post.post;
-	    $rootScope.post.title = $routeParams.title;
-	    $location.path = '/blog/u/:name/:day/:title';
+	    $rootScope.title = post.title;
+	    $location.path ('/blog/u/'+post.post.name+'/'+post.post.time.day+'/'+post.post.title);
 	  }).error(function(data){
-	    $location.path = '/blog';
+	    $location.path('/blog');
 	  });
 	};
-	//999
-	$rootScope.blogedit = function(){
+
+	$rootScope.blogtags = function(name){
 		$http({
-	    url:'/api/blog/edit/:name/:day/:title',
-	    method:'GET'
-	  }).success(function(editpost){
-	    $rootScope.editpost=editpost.post;
-	    $location.path('/blog/edit');
-	  });
-	};
-	$rootScope.blogtags = function(){
-		$http({
-	    url:'/api/blog/tags',
+	    url:'/api/blog/tags'+name,
 	    method:'GET'
 	  }).success(function(tags){
 	    $rootScope.tags = tags;
-	    $location.path = '/blog/tags';
+	    $location.path('/blog/tags/'+name);
 	  }).error(function(data){
-	    $location.path = '/blog';
+	    $location.path('/blog');
 	  });
 	};
-	$rootScope.blogtag = function(){
+	$rootScope.blogtag = function(tag,name){
 		$http({
-	    url:'/api/blog/tags/:tag',
+	    url:'/api/blog/tags/'+name+'/'+tag,
 	    method:'GET'
 	  }).success(function(tag){
 	    $rootScope.tag = tag;
-	    $location.path = '/blog/tags/:tag';
+	    $location.path('/blog/tags/'+name+'/'+tag);
 	  }).error(function(data){
-	    $location.path = '/blog/tags';
+	    $location.path('/blog/tags/'+name);
 	  });
 	};
 	$rootScope.bloglinks = function(){
@@ -104,9 +118,9 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 	    method:'GET'
 	  }).success(function(links){
 	    $rootScope.links = links;
-	    $location.path = '/blog/links';
+	    $location.path('/blog/links');
 	  }).error(function(data){
-	    $location.path = '/blog';
+	    $location.path('/blog');
 	  });
 	};
 	//必要性？
@@ -123,15 +137,15 @@ angular.module('SDWSNApp').run(function($window,$rootScope,$http,$location){
 	    method:'GET'
 	  });
 	};
-	$rootScope.bloguser = function(){
+	$rootScope.bloguser = function(name){
 		$http({
-	    url:'/api/blog/u/:name',
+	    url:'/api/blog/u/'+name,
 	    method:'GET'
 	  }).success(function(user){
 	    $rootScope.user = user;
-	    $location.path = '/blog/user';
+	    $location.path('/blog/u/'+name);
 	  }).error(function(data){
-	    $location.path = '/blog';
+	    $location.path('/blog');
 	  });
 	};
 });
